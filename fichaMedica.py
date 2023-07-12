@@ -7,7 +7,7 @@ class FichaMedica:
     dbName = 'database.db'
 
     def __init__(self, window):
-        self.wind = window
+        self.wind = Toplevel(window)
         self.wind.title('Ficha Medica')
 
         # Se crea el contenedor frame
@@ -23,22 +23,16 @@ class FichaMedica:
 
         #tabla de vista
         # define las columnas 
-        columns = ('diagnostico', 'anemesis', 'fecha')
-        self.tree = ttk.Treeview(height = 20, columns = columns, show='headings')
+        columns = ('diagnostico', 'anemesis', 'date')
+        self.tree = ttk.Treeview(self.wind, height = 20, columns = columns, show='headings')
         self.tree.grid(row=3, column=0, sticky='nsew')
         # define los titulos de las columnas 
         self.tree.heading('diagnostico', text='Diagnóstico')
         self.tree.heading('anemesis', text='Anémesis')
-        self.tree.heading('fecha', text='Fecha')
+        self.tree.heading('date', text='Fecha')
 
-        # agrega un scrollbar
-        scrollbar = ttk.Scrollbar(orient= VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscroll=scrollbar.set)
-        scrollbar.grid(row=10, column=1, sticky='ns')
-        # busca la informacion en la base de datos y lo pinta en la tabla
-
-         #boton para crear producto
-        Button(text = 'Agregar diagnostico', command=self.viewDiagnostico).grid(row = 4, column=0, columnspan = 2, sticky = W + E)
+         #boton para agregar diagnostico
+        Button(self.wind, text = 'Agregar diagnóstico', command=self.viewDiagnostico).grid(row = 4, column=0, columnspan = 2, sticky = W + E)
 
     def runQuery(self, query, parameters = ()):
         with sqlite3.connect(self.dbName) as conn :
@@ -67,8 +61,8 @@ class FichaMedica:
             self.idFicha = row[0]
             Label(frame, text = 'Nombre del paciente: ' + row[1] + ' ' + row[2]).grid(row = 1, column = 0)
             Label(frame, text = 'RUT del paciente: ' + row[3]).grid(row = 2, column = 0)
-            Label(frame, text = 'Prevision del paciente: ' + row[4]).grid(row = 3, column = 0)
-            Label(frame, text = 'Nombre del medico: ' + row[5] + ' ' + row[6]).grid(row = 4, column = 0)
+            Label(frame, text = 'Previsión del paciente: ' + row[4]).grid(row = 3, column = 0)
+            Label(frame, text = 'Nombre del médico: ' + row[5] + ' ' + row[6]).grid(row = 4, column = 0)
             Label(frame, text = 'Especialidad del médico: ' + row[7]).grid(row = 5, column = 0)
            
             query = 'SELECT * FROM Diagnostico WHERE Diagnostico.id_ficha = ?' 
@@ -97,7 +91,7 @@ class FichaMedica:
         self.date.grid(row = 3, column = 1)
 
         #boton para agregar
-        Button(frameTwo,text = 'Agregar ', command=self.addDiagnostico).grid(row = 4, column=0, columnspan = 2, sticky = W + E)
+        Button(frameTwo,text = 'Agregar', command=self.addDiagnostico).grid(row = 4, column=0, columnspan = 2, sticky = W + E)
 
     def addDiagnostico(self): 
         if len(self.diagnosis.get()) != 0 and len(self.anemesis.get()) != 0 and len(self.date.get()) != 0 : 
