@@ -10,10 +10,7 @@ class Ficha:
         self.wind = Toplevel(window)
         self.wind.title('Ficha Medica')
 
-        # Se crea el contenedor frame
-     #   frame = LabelFrame(self.wind, text = 'Crear ficha de paciente')
-      #  frame.grid(row = 0, column = 0, columnspan = 3, pady = 20)
-
+        # Se crea los listados de paciente y medico
         Label(self.wind, text = 'Crear ficha de paciente').grid(row = 1, column = 0)
         Label(self.wind, text = 'Seleccionar Paciente: ').grid(row = 2, column = 0)
         self.listPaciente = ttk.Combobox(self.wind )
@@ -23,7 +20,7 @@ class Ficha:
         self.listMedico = ttk.Combobox(self.wind)
         self.listMedico.grid(row = 5, column = 0)
 
-        #boton para crear producto
+        #boton para crear ficha y eliminar
         Button(self.wind, text = 'Crear ficha ', command=self.addFile).grid(row = 6, columnspan = 2, sticky = W + E)
         Button(self.wind, text = 'Eliminar', command = self.deleteFile).grid(row = 9, column = 0, sticky = W + E)
         
@@ -31,8 +28,10 @@ class Ficha:
         self.message = Label(self.wind, text = '', fg = 'red')
         self.message.grid(row = 7, column = 0, columnspan = 2, sticky = W + E)
 
+        #Se obtiene el listado de medicos y pacientes
         self.getMedicos()
         self.getPacientes()
+
         #tabla de vista
         # define las columnas 
         columns = ('file','namePaciente', 'rutPaciente', 'prevision', 'nameMedico', 'especialidad')
@@ -46,13 +45,10 @@ class Ficha:
         self.tree.heading('nameMedico', text='Nombre médico')
         self.tree.heading('especialidad', text='Especialidad')
 
-        # agrega un scrollbar
-        scrollbar = ttk.Scrollbar(orient= VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscroll=scrollbar.set)
-        scrollbar.grid(row=6, column=1, sticky='ns')
         # busca la informacion en la base de datos y lo pinta en la tabla
         self.getFiles()
 
+    #Conexion y ejecucion de consulta a la base de datos
     def runQuery(self, query, parameters = ()):
         with sqlite3.connect(self.dbName) as conn :
             cursor = conn.cursor()
@@ -63,6 +59,7 @@ class Ficha:
     def validation(self):
         return len(self.rut.get()) != 0   
     
+     #Se obtiene el listado de fichas medicas 
     def getFiles(self):
          # limpiando la tabla
         records = self.tree.get_children()
@@ -71,13 +68,14 @@ class Ficha:
         # obteniendo la data
         query = 'SELECT Ficha.id_ficha,  Persona.nombre, Persona.apellido_paterno, Persona.rut, Paciente.prevision, personaMedico.nombre, personaMedico.apellido_paterno, especialidad.especialidad FROM FICHA INNER JOIN PACIENTE ON PACIENTE.ID_PACIENTE = FICHA.ID_PACIENTE INNER JOIN PERSONA ON PACIENTE.ID_PERSONA = PERSONA.ID_PERSONA INNER JOIN MEDICO ON MEDICO.ID_MEDICO = FICHA.ID_MEDICO INNER JOIN ESPECIALIDAD ON MEDICO.ID_ESPECIALIDAD = ESPECIALIDAD.ID_ESPECIALIDAD INNER JOIN PERSONA AS personaMedico ON MEDICO.ID_PERSONA = personaMedico.ID_PERSONA'
         dbRows = self.runQuery(query)
+        # seteando la data
         files = []
         for row in dbRows:
             files.append((f'{row[0]}', f'{row[1]} {row[2]}', f'{row[3]}', f'{row[4]}', f'{row[5]} {row[6]}',f'{row[7]}'))
-        # seteando la data
         for file in files:
             self.tree.insert('', END, values=file)
 
+    #Se obtiene el listado de medicos
     def getMedicos(self) :
         query = 'SELECT * FROM MEDICO INNER JOIN PERSONA ON PERSONA.ID_PERSONA = MEDICO.ID_PERSONA'
         dbRows = self.runQuery(query)
@@ -89,6 +87,7 @@ class Ficha:
         self.listMedico["values"] = medicos
         self.listMedico.current(0)
 
+    #Se obtiene el listado de pacientes
     def getPacientes(self) :
         self.message['text'] = ""
         query = 'SELECT * FROM PACIENTE INNER JOIN PERSONA ON PERSONA.ID_PERSONA = PACIENTE.ID_PERSONA'
@@ -101,12 +100,14 @@ class Ficha:
         self.listPaciente["values"] = pacientes
         self.listPaciente.current(0)
 
+    #Se crea una nueva ficha medica
     def addFile(self): 
         query = "INSERT INTO FICHA VALUES(NULL, ?, ?)"
         parameters = (int(self.idPacientes[self.listPaciente.get()]), int(self.idMedicos[self.listMedico.get()]))   
         response = self.runQuery(query, parameters)
         self.getFiles()
 
+    #Se elimina una ficha medica
     def deleteFile(self): 
         try:
             self.tree.item(self.tree.selection())['values'][0]

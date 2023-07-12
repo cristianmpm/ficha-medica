@@ -84,7 +84,8 @@ class Paciente:
         #boton para editar y eliminar registro 
         Button(self.wind, text = 'Eliminar', command = self.deletePaciente).grid(row = 15, column = 0, sticky = W + E)
         Button(self.wind, text = 'Editar', command = self.viewEditPaciente).grid(row = 15, column = 1, sticky = W + E)
-       
+
+    #Conexion y ejecucion de consulta a la base de datos 
     def runQuery(self, query, parameters = ()):
         with sqlite3.connect(self.dbName) as conn :
             cursor = conn.cursor()
@@ -95,6 +96,7 @@ class Paciente:
     def validation(self):
         return len(self.name.get()) != 0 and len(self.lastName.get()) != 0 and len(self.lastNameTwo.get()) != 0 and len(self.rut.get()) != 0 and len(self.phoneNumber.get()) != 0 and len(self.email.get()) != 0 and len(self.address.get()) != 0 and len(self.gender.get()) != 0 and len(self.insurance.get()) != 0 and len(self.age.get()) != 0 and len(self.birthdate.get()) != 0 
     
+    #Se obtiene el listado de pacientes
     def getPacientes(self):
          # limpiando la tabla
         records = self.tree.get_children()
@@ -111,6 +113,7 @@ class Paciente:
             self.tree.insert('', END, values=paciente)
         self.message['text'] = ""
 
+    #Se agrega un paciente
     def addPaciente(self): 
         validation = self.validation()
         if validation: 
@@ -124,6 +127,7 @@ class Paciente:
         else:
             self.message['text'] = 'Por favor ingrese todos los campos'
 
+    #Se elimina un paciente
     def deletePaciente(self): 
         try:
             self.tree.item(self.tree.selection())['values'][0]
@@ -139,6 +143,7 @@ class Paciente:
         self.runQuery(query, (idPaciente, ))
         self.getPacientes()
         
+    #Se crea la pantalla para editar un paciente
     def viewEditPaciente(self): 
         try:
             self.tree.item(self.tree.selection())['values'][0]
@@ -207,8 +212,9 @@ class Paciente:
         insurance.grid(row = 11, column = 1)
         Button(editView, text = 'Actualizar', command= lambda: self.editPaciente(name.get(), lastName.get(), lastNameTwo.get(), email.get(), phoneNumber.get(), rut.get(), address.get(), gender.get(), values, age.get(), birthdate.get(), insurance.get(), editView)).grid(row = 12, column = 0, columnspan=2, sticky = W + E)
 
+    #Se edita un paciente
     def editPaciente(self,name, lastName, lastNameTwo, email, phoneNumber, rut, address, gender, values, age, birthdate, insurance, editView) :
-        query = "UPDATE PERSONA SET nombre = ?, apellido_materno = ?, apellido_paterno = ?, email = ?, numero_telefono = ?, rut = ?, direccion = ?, sexo = ? WHERE rut = ?"
+        query = "UPDATE PERSONA SET nombre = ?, apellido_paterno = ?, apellido_materno = ?, email = ?, numero_telefono = ?, rut = ?, direccion = ?, sexo = ? WHERE rut = ?"
         parameters = (name, lastName, lastNameTwo, email, phoneNumber, rut, address, gender, values[0])
         response = self.runQuery(query, parameters)
         query = "UPDATE PACIENTE SET edad = ?, fecha_nacimiento = ?, prevision = ? WHERE id_paciente = ?"

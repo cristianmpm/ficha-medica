@@ -18,22 +18,27 @@ class FichaMedica:
         self.rut = Entry(frame)
         self.rut.grid(row = 1, column = 1)
 
-        #boton para crear producto
+        #boton para buscar ficha
         Button(frame, text = 'Buscar ficha ', command=self.getFile).grid(row = 2, columnspan = 2, sticky = W + E)
 
         #tabla de vista
         # define las columnas 
         columns = ('diagnostico', 'anemesis', 'date')
         self.tree = ttk.Treeview(self.wind, height = 20, columns = columns, show='headings')
-        self.tree.grid(row=3, column=0, sticky='nsew')
+        self.tree.grid(row=4, column=0, sticky='nsew')
         # define los titulos de las columnas 
         self.tree.heading('diagnostico', text='Diagnóstico')
         self.tree.heading('anemesis', text='Anémesis')
         self.tree.heading('date', text='Fecha')
 
-         #boton para agregar diagnostico
-        Button(self.wind, text = 'Agregar diagnóstico', command=self.viewDiagnostico).grid(row = 4, column=0, columnspan = 2, sticky = W + E)
+        #Mensajes de error
+        self.message = Label(self.wind, text = '', fg = 'red')
+        self.message.grid(row = 3, column = 0, columnspan = 2, sticky = W + E)  
+       
+        #boton para agregar diagnostico
+        Button(self.wind, text = 'Agregar diagnóstico', command=self.viewDiagnostico).grid(row = 5, column=0, columnspan = 2, sticky = W + E)
 
+    #Conexion y ejecucion de consulta a la base de datos
     def runQuery(self, query, parameters = ()):
         with sqlite3.connect(self.dbName) as conn :
             cursor = conn.cursor()
@@ -44,7 +49,14 @@ class FichaMedica:
     def validation(self):
         return len(self.rut.get()) != 0   
     
+    #Se obtiene la informacion de la ficha del paciente 
     def getFile(self):
+        #Se valida que el campo rut no este vacio 
+        if self.validation() == False :
+            self.message['text'] = 'Por favor ingrese el rut del paciente'
+            return
+        else :
+            self.message['text'] = ""
          # limpiando la tabla
         records = self.tree.get_children()
         for element in records:
@@ -72,8 +84,10 @@ class FichaMedica:
         for paciente in pacientes:
             self.tree.insert('', END, values=paciente)
 
+    #Se crea la pantalla para agregar diagnostico 
     def viewDiagnostico(self):
         self.add = Toplevel()
+        self.add.title("Agregar diagnóstico")
        # Se crea el contenedor frame
         frameTwo = LabelFrame(self.add, text = 'Agregar diagnóstico')
         frameTwo.grid(row = 0, column = 0, columnspan = 3, pady = 20)
@@ -93,6 +107,7 @@ class FichaMedica:
         #boton para agregar
         Button(frameTwo,text = 'Agregar', command=self.addDiagnostico).grid(row = 4, column=0, columnspan = 2, sticky = W + E)
 
+    #Se agrega un diagnostico a la ficha del paciente
     def addDiagnostico(self): 
         if len(self.diagnosis.get()) != 0 and len(self.anemesis.get()) != 0 and len(self.date.get()) != 0 : 
             query = "INSERT INTO DIAGNOSTICO VALUES(NULL, ?, ?, ?, ?)"
